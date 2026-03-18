@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>黑神话：悟空 · 天命之旅</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'PingFang SC','Microsoft YaHei','Noto Serif SC',serif;}
+#stage{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:390px;height:844px;overflow:hidden;background:#06040a;box-shadow:0 0 80px rgba(180,100,20,0.4),0 0 200px rgba(100,40,0,0.2);}
+.page{position:absolute;width:100%;height:100%;top:0;left:0;display:none;flex-direction:column;align-items:center;overflow:hidden;}
+.page.active{display:flex;}
+
+@keyframes fadeIn{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(45px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes glowPulse{
+  0%,100%{text-shadow:0 0 20px #c8960c,0 0 40px #8b6914;}
+  50%{text-shadow:0 0 35px #f5c842,0 0 70px #e0a020,0 0 120px #c8960c;}
+}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes particleFly{
+  0%{transform:translateY(900px) rotate(0deg) scale(0);opacity:0;}
+  8%{opacity:1;}
+  90%{opacity:0.5;}
+  100%{transform:translateY(-20px) rotate(720deg) scale(1.5);opacity:0;}
+}
+@keyframes scanLine{0%{top:-3px}100%{top:102%}}
+@keyframes shine{0%{left:-150%}100%{left:200%}}
+@keyframes borderPulse{
+  0%,100%{box-shadow:0 0 10px rgba(200,150,12,0.3),inset 0 0 8px rgba(200,150,12,0.05);}
+  50%{box-shadow:0 0 28px rgba(240,180,41,0.65),inset 0 0 18px rgba(200,150,12,0.13);}
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(38px) scale(0.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes rippleOut{0%{transform:scale(0);opacity:0.7}100%{transform:scale(6);opacity:0}}
+@keyframes inkDrop{
+  0%{clip-path:circle(0% at 50% 50%);opacity:0;}
+  100%{clip-path:circle(150% at 50% 50%);opacity:1;}
+}
+@keyframes audioWave{
+  0%,100%{transform:scaleY(0.4);}
+  50%{transform:scaleY(1.1);}
+}
+@keyframes scratchReveal{
+  from{opacity:1;}
+  to{opacity:0;}
+}
+
+/* BGM */
+#bgmBtn{
+  position:absolute;top:16px;right:16px;z-index:9999;
+  width:38px;height:38px;border-radius:50%;
+  border:1.5px solid rgba(200,150,12,0.5);
+  background:rgba(0,0,0,0.65);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px);transition:all 0.3s;
+}
+#bgmBtn:hover{border-color:#f0b429;transform:scale(1.1);}
+#bgmBtn svg{width:18px;height:18px;fill:#f0b429;transition:fill 0.3s;}
+#bgmBtn.muted svg{fill:rgba(150,100,10,0.4);}
+
+/* page dots */
+#dots{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  z-index:9999;display:flex;gap:7px;align-items:center;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(200,150,12,0.2);transition:all 0.35s;}
+.dot.on{background:#f0b429;box-shadow:0 0 8px #f0b429;width:20px;border-radius:3px;}
+
+/* particles */
+.ptc{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f5c842,#b87000);animation:particleFly linear infinite;}
+
+/* back btn */
+.back-btn{
+  position:absolute;top:16px;left:16px;z-index:100;
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(200,150,12,0.4);
+  background:rgba(0,0,0,0.55);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:all 0.3s;
+  color:#f0b429;font-size:18px;
+}
+.back-btn:hover{border-color:#f0b429;transform:scale(1.1);}
+
+/* corner decorations */
+.corner{position:absolute;width:50px;height:50px;border-color:rgba(200,150,12,0.45);border-style:solid;z-index:1;pointer-events:none;}
+.c-tl{top:14px;left:14px;border-width:2px 0 0 2px;}
+.c-tr{top:14px;right:14px;border-width:2px 2px 0 0;}
+.c-bl{bottom:26px;left:14px;border-width:0 0 2px 2px;}
+.c-br{bottom:26px;right:14px;border-width:0 2px 2px 0;}
+
+/* gold divider */
+.gold-line{height:1px;background:linear-gradient(90deg,transparent,#c8960c 30%,#f0b429 50%,#c8960c 70%,transparent);}
+
+/* ===== PAGE 1: 标题页 ===== */
+#p1{background:radial-gradient(ellipse 80% 60% at 50% 20%,#1c0d00 0%,#0a0500 50%,#030108 100%);justify-content:flex-end;}
+#p1 .hero{position:absolute;width:100%;height:76%;top:0;left:0;z-index:0;overflow:hidden;}
+#p1 .hero::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 55% 70% at 50% 80%,rgba(230,130,20,0.5) 0%,transparent 65%),
+    radial-gradient(ellipse 35% 50% at 50% 55%,rgba(180,80,10,0.3) 0%,transparent 55%),
+    radial-gradient(ellipse 100% 35% at 50% 100%,rgba(255,160,30,0.2) 0%,transparent 55%),
+    linear-gradient(180deg,#0d0600 0%,#1a0c03 15%,#100900 40%,#060410 65%,#030108 100%);}
+#p1 .hero::after{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(200,150,12,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,150,12,0.04) 1px,transparent 1px);
+  background-size:30px 30px;z-index:1;}
+#p1 .beam{position:absolute;width:150px;height:200%;top:-50%;left:50%;transform:translateX(-50%) rotate(-6deg);
+  background:linear-gradient(180deg,transparent,rgba(240,180,40,0.13) 30%,rgba(240,180,40,0.06) 65%,transparent);
+  z-index:2;animation:scanLine 5s linear infinite;}
+#p1 .beam2{width:70px;left:28%;transform:translateX(-50%) rotate(10deg);opacity:0.4;animation:scanLine 7s linear infinite;animation-delay:-3.5s;}
+#p1 .halo{position:absolute;width:280px;height:280px;border-radius:50%;top:8%;left:50%;transform:translateX(-50%);
+  border:1px solid rgba(200,150,12,0.12);
+  box-shadow:0 0 50px rgba(200,150,12,0.08),inset 0 0 50px rgba(200,150,12,0.04);
+  z-index:2;animation:borderPulse 4s ease-in-out infinite;}
+#p1 .halo-inner{position:absolute;width:200px;height:200px;border-radius:50%;top:calc(8% + 40px);left:50%;transform:translateX(-50%);
+  border:1px solid rgba(200,150,12,0.07);z-index:2;}
+#p1 .wk{position:absolute;bottom:3%;left:50%;transform:translateX(-50%);z-index:3;
+  filter:drop-shadow(0 0 25px rgba(240,180,40,0.6));}
+#p1 .wk-head{width:66px;height:70px;border-radius:50% 50% 45% 45%;
+  background:linear-gradient(160deg,#1a0c00,#0d0600);
+  border:1px solid rgba(200,150,12,0.3);position:relative;margin:0 auto;
+  box-shadow:0 0 20px rgba(220,130,20,0.4);}
+#p1 .wk-head::before{content:'';position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  width:28px;height:22px;background:linear-gradient(180deg,rgba(200,150,12,0.5),transparent);border-radius:50% 50% 0 0;}
+#p1 .wk-head::after{content:'';position:absolute;top:17px;left:-7px;right:-7px;height:11px;
+  background:linear-gradient(90deg,#b87000,#f5c842,#c8960c,#f5c842,#b87000);
+  border-radius:6px;box-shadow:0 0 18px rgba(240,180,40,0.95);}
+#p1 .wk-body{width:76px;height:110px;background:linear-gradient(180deg,#150a00,#0a0500);
+  border:1px solid rgba(200,150,12,0.15);border-top:none;border-radius:0 0 20px 20px;
+  position:relative;margin:0 auto;box-shadow:0 8px 35px rgba(200,120,10,0.3);}
+#p1 .wk-body::after{content:'';position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  width:38px;height:55px;background:linear-gradient(180deg,rgba(200,150,12,0.15),transparent);border-radius:20px;}
+#p1 .wk-staff{position:absolute;right:-28px;top:-68px;width:7px;height:168px;
+  background:linear-gradient(180deg,#f5c842,#c8960c,#8b5a00,#f5c842);
+  border-radius:4px;box-shadow:0 0 18px rgba(240,180,40,0.7);transform:rotate(7deg);}
+#p1 .wk-staff::before,#p1 .wk-staff::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  width:18px;height:18px;background:radial-gradient(circle,#f5c842,#c8960c);
+  border-radius:50%;box-shadow:0 0 14px rgba(240,180,40,0.95);}
+#p1 .wk-staff::before{top:-9px;}
+#p1 .wk-staff::after{bottom:-9px;}
+#p1 .wk-legs{display:flex;gap:10px;justify-content:center;}
+#p1 .wk-leg{width:25px;height:72px;background:linear-gradient(180deg,#120800,#080400);
+  border:1px solid rgba(200,150,12,0.1);border-radius:0 0 12px 12px;}
+#p1 .scanline{position:absolute;width:100%;height:3px;
+  background:linear-gradient(90deg,transparent,rgba(240,180,40,0.3),transparent);
+  animation:scanLine 3s linear infinite;z-index:4;}
+#p1 .bottom-grad{position:absolute;bottom:0;left:0;right:0;height:55%;
+  background:linear-gradient(0deg,#030108 35%,transparent);z-index:4;}
+#p1 .content{position:relative;z-index:10;width:100%;padding:0 28px 82px;
+  display:flex;flex-direction:column;align-items:center;}
+#p1 .tag{font-size:11px;letter-spacing:5px;color:rgba(200,150,12,0.65);text-transform:uppercase;
+  margin-bottom:10px;animation:slideDown 0.8s ease both;animation-delay:0.3s;}
+#p1 .t1{font-size:50px;font-weight:900;color:#f0b429;letter-spacing:2px;line-height:1;
+  animation:glowPulse 3s ease-in-out infinite,slideUp 0.8s ease both;}
+#p1 .t2{font-size:19px;font-weight:700;color:rgba(240,180,60,0.85);letter-spacing:10px;margin-top:7px;
+  animation:slideUp 0.8s ease both;animation-delay:0.5s;}
+#p1 .hdiv{width:220px;margin:14px 0 11px;animation:slideUp 0.8s ease both;animation-delay:0.7s;}
+#p1 .desc{font-size:12.5px;color:rgba(220,190,120,0.75);letter-spacing:1px;text-align:center;line-height:2;
+  animation:slideUp 0.8s ease both;animation-delay:0.9s;}
+#p1 .sbtn{margin-top:22px;width:185px;height:50px;
+  background:linear-gradient(135deg,#7a4800,#c8960c,#f0b429,#c8960c,#7a4800);
+  border:none;cursor:pointer;position:relative;overflow:hidden;
+  clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+  animation:slideUp 0.8s ease both,floatUp 3s ease-in-out infinite;
+  animation-delay:1.1s,2s;transition:transform 0.2s;
+  display:flex;align-items:center;justify-content:center;}
+#p1 .sbtn span{font-size:17px;font-weight:700;color:#1a0800;letter-spacing:5px;}
+#p1 .sbtn::before{content:'';position:absolute;top:0;left:-150%;width:80%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,200,0.4),transparent);
+  animation:shine 2.5s ease-in-out infinite;animation-delay:2s;}
+#p1 .sbtn:active{transform:scale(0.95);}
+
+/* ===== PAGE 2: 目录页 ===== */
+#p2{background:linear-gradient(160deg,#0a0500 0%,#060310 45%,#0a0600 100%);}
+#p2 .bg-grid{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(200,150,12,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(200,150,12,0.05) 1px,transparent 1px);
+  background-size:25px 25px;z-index:0;}
+#p2 .header{position:relative;z-index:5;text-align:center;padding-top:58px;
+  animation:slideDown 0.7s ease both;}
+#p2 .header .zh{font-size:28px;font-weight:900;color:#f0b429;letter-spacing:5px;
+  text-shadow:0 0 20px rgba(200,150,12,0.5);}
+#p2 .header .en{font-size:11px;letter-spacing:6px;color:rgba(200,150,12,0.5);margin-top:5px;text-transform:uppercase;}
+#p2 .hdiv{width:180px;margin:12px auto 0;animation:slideDown 0.7s ease both;animation-delay:0.2s;}
+#p2 .cards{position:relative;z-index:5;width:100%;padding:22px 22px 0;
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+#p2 .card{
+  height:148px;border-radius:8px;cursor:pointer;position:relative;overflow:hidden;
+  border:1px solid rgba(200,150,12,0.25);
+  background:rgba(10,5,0,0.8);
+  backdrop-filter:blur(6px);
+  transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;
+  animation:cardIn 0.6s ease both;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+}
+#p2 .card:nth-child(1){animation-delay:0.3s;}
+#p2 .card:nth-child(2){animation-delay:0.45s;}
+#p2 .card:nth-child(3){animation-delay:0.6s;}
+#p2 .card:nth-child(4){animation-delay:0.75s;}
+#p2 .card:hover{transform:translateY(-4px) scale(1.02);border-color:rgba(240,180,40,0.6);box-shadow:0 8px 30px rgba(200,150,12,0.3);}
+#p2 .card:active{transform:scale(0.97);}
+#p2 .card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(200,150,12,0.08) 0%,transparent 60%);}
+#p2 .card::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(240,180,40,0.12),transparent);
+  transition:left 0.4s;}
+#p2 .card:hover::after{left:150%;}
+#p2 .card .icon{font-size:32px;line-height:1;filter:drop-shadow(0 0 8px rgba(240,180,40,0.6));}
+#p2 .card .num{font-size:10px;letter-spacing:3px;color:rgba(200,150,12,0.5);text-transform:uppercase;}
+#p2 .card .lbl{font-size:15px;font-weight:700;color:#f0d060;letter-spacing:2px;text-align:center;}
+#p2 .card .sub{font-size:10px;color:rgba(200,160,80,0.6);letter-spacing:1px;text-align:center;}
+#p2 .card .arrow{position:absolute;bottom:10px;right:12px;font-size:12px;color:rgba(200,150,12,0.4);}
+/* card color accents */
+#p2 .card-1{border-top:2px solid rgba(100,200,255,0.4);}
+#p2 .card-2{border-top:2px solid rgba(255,100,100,0.4);}
+#p2 .card-3{border-top:2px solid rgba(200,100,255,0.4);}
+#p2 .card-4{border-top:2px solid rgba(100,255,150,0.4);}
+#p2 .back-to-home{position:relative;z-index:5;margin-top:18px;
+  width:130px;height:38px;border-radius:20px;
+  border:1px solid rgba(200,150,12,0.35);
+  background:rgba(0,0,0,0.5);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+  color:rgba(200,150,12,0.7);font-size:12px;letter-spacing:2px;
+  transition:all 0.3s;animation:slideUp 0.7s ease both;animation-delay:0.9s;
+  backdrop-filter:blur(4px);}
+#p2 .back-to-home:hover{border-color:#f0b429;color:#f0b429;transform:scale(1.05);}
+
+/* ===== PAGE 3: 内容页1 - 绝美天地 ===== */
+#p3{background:linear-gradient(180deg,#060210 0%,#0a0500 100%);}
+#p3 .bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 30%,rgba(30,100,180,0.15) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 30% 70%,rgba(180,80,10,0.1) 0%,transparent 60%);}
+#p3 .pg-title{position:relative;z-index:5;text-align:center;padding-top:55px;animation:slideDown 0.6s ease both;}
+#p3 .pg-title .icon{font-size:22px;filter:drop-shadow(0 0 8px rgba(100,200,255,0.8));}
+#p3 .pg-title .zh{font-size:22px;font-weight:900;color:#7dd3fc;letter-spacing:5px;text-shadow:0 0 20px rgba(100,180,255,0.6);margin-top:4px;}
+#p3 .pg-title .en{font-size:10px;letter-spacing:5px;color:rgba(100,180,255,0.45);text-transform:uppercase;margin-top:3px;}
+#p3 .slider-wrap{position:relative;z-index:5;width:calc(100% - 40px);height:320px;border-radius:12px;overflow:hidden;margin-top:16px;border:1px solid rgba(100,180,255,0.2);box-shadow:0 0 30px rgba(100,180,255,0.15);animation:fadeIn 0.8s ease both;animation-delay:0.3s;}
+#p3 .slides{display:flex;width:100%;height:100%;transition:transform 0.7s cubic-bezier(0.4,0,0.2,1);}
+#p3 .slide{min-width:100%;height:100%;position:relative;overflow:hidden;}
+#p3 .slide-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+/* Slide 1: 冰雪仙山 */
+#p3 .s1-bg{background:linear-gradient(180deg,#0a1628 0%,#1a3a6b 40%,#2d6a9f 70%,#4a9fd4 100%);}
+#p3 .s1-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(150,210,255,0.3) 0%,transparent 60%),radial-gradient(ellipse 80% 30% at 50% 100%,rgba(255,255,255,0.15) 0%,transparent 50%);}
+/* mountain shapes */
+#p3 .mountain{position:absolute;bottom:0;}
+#p3 .mt1{left:0;width:0;height:0;border-left:110px solid transparent;border-right:80px solid transparent;border-bottom:200px solid #1a3a6b;filter:brightness(0.8);}
+#p3 .mt2{right:0;width:0;height:0;border-left:90px solid transparent;border-right:120px solid transparent;border-bottom:180px solid #162d56;filter:brightness(0.7);}
+#p3 .mt3{left:50%;transform:translateX(-50%);width:0;height:0;border-left:130px solid transparent;border-right:130px solid transparent;border-bottom:260px solid #0f2340;}
+#p3 .snow{position:absolute;top:50px;left:50%;transform:translateX(-50%);width:80px;height:60px;background:linear-gradient(180deg,rgba(255,255,255,0.9),rgba(200,220,255,0.4));border-radius:0 0 20px 20px;clip-path:polygon(50% 0%,100% 100%,0% 100%);}
+#p3 .stars{position:absolute;top:0;left:0;right:0;height:50%;}
+/* slide caption */
+#p3 .s-caption{position:absolute;bottom:0;left:0;right:0;padding:30px 16px 14px;background:linear-gradient(0deg,rgba(0,0,0,0.8) 0%,transparent);}
+#p3 .s-caption .stitle{font-size:14px;font-weight:700;color:#f0d060;letter-spacing:2px;}
+#p3 .s-caption .sdesc{font-size:11px;color:rgba(200,180,120,0.75);margin-top:4px;line-height:1.6;}
+/* Slide 2: 火焰地狱 */
+#p3 .s2-bg{background:linear-gradient(180deg,#1a0300 0%,#3d0a00 30%,#7a1800 60%,#c83000 100%);}
+#p3 .s2-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 40% at 50% 80%,rgba(255,100,0,0.4) 0%,transparent 60%),radial-gradient(ellipse 30% 60% at 50% 50%,rgba(255,50,0,0.2) 0%,transparent 50%);}
+/* Slide 3: 云海仙境 */
+#p3 .s3-bg{background:linear-gradient(180deg,#0a0a1a 0%,#1a1a3a 30%,#2a2060 60%,#4a3a8a 100%);}
+#p3 .s3-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 60%,rgba(150,100,255,0.25) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 30% 80%,rgba(200,150,255,0.15) 0%,transparent 50%);}
+/* slider dots */
+#p3 .s-dots{position:relative;z-index:5;display:flex;gap:8px;justify-content:center;margin-top:12px;}
+#p3 .s-dot{width:24px;height:3px;border-radius:2px;background:rgba(100,180,255,0.25);cursor:pointer;transition:all 0.3s;}
+#p3 .s-dot.on{background:#7dd3fc;box-shadow:0 0 8px rgba(100,200,255,0.7);width:32px;}
+/* quote */
+#p3 .quote{position:relative;z-index:5;width:calc(100% - 40px);margin-top:18px;padding:14px 18px;border-left:2px solid rgba(100,180,255,0.5);background:rgba(100,180,255,0.05);border-radius:0 8px 8px 0;animation:slideRight 0.8s ease both;animation-delay:0.5s;}
+#p3 .quote p{font-size:12.5px;color:rgba(180,220,255,0.85);line-height:1.8;letter-spacing:0.5px;font-style:italic;}
+#p3 .quote cite{display:block;font-size:10px;color:rgba(100,180,255,0.5);margin-top:6px;letter-spacing:2px;}
+
+/* ===== PAGE 4: 内容页2 - 七十二变 ===== */
+#p4{background:linear-gradient(180deg,#0a0a0a 0%,#0f0a1a 50%,#0a0a0a 100%);}
+#p4 .bg{position:absolute;inset:0;background-image:linear-gradient(rgba(180,50,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(180,50,255,0.04) 1px,transparent 1px);background-size:20px 20px;}
+#p4 .bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 40%,rgba(140,50,255,0.12) 0%,transparent 60%);}
+#p4 .pg-title{position:relative;z-index:5;text-align:center;padding-top:55px;animation:slideDown 0.6s ease both;}
+#p4 .pg-title .icon{font-size:22px;filter:drop-shadow(0 0 8px rgba(180,100,255,0.8));}
+#p4 .pg-title .zh{font-size:22px;font-weight:900;color:#c084fc;letter-spacing:5px;text-shadow:0 0 20px rgba(160,80,255,0.6);margin-top:4px;}
+#p4 .pg-title .en{font-size:10px;letter-spacing:5px;color:rgba(160,80,255,0.45);text-transform:uppercase;margin-top:3px;}
+/* video frame */
+#p4 .vid-frame{position:relative;z-index:5;width:calc(100% - 40px);margin-top:18px;border-radius:10px;overflow:hidden;border:1px solid rgba(180,80,255,0.3);box-shadow:0 0 30px rgba(140,50,255,0.2);animation:fadeIn 0.8s ease both;animation-delay:0.3s;}
+#p4 .vid-ui{width:100%;height:200px;background:linear-gradient(135deg,#0d0d1a,#1a0d2e,#0d0d1a);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;}
+#p4 .vid-ui::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(140,50,255,0.2) 0%,transparent 60%);}
+/* hex grid decoration */
+#p4 .hex-grid{position:absolute;inset:0;overflow:hidden;opacity:0.3;}
+#p4 .hex{position:absolute;width:40px;height:46px;background:rgba(180,80,255,0.1);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);border:1px solid rgba(180,80,255,0.2);}
+#p4 .play-btn{position:relative;z-index:2;width:60px;height:60px;border-radius:50%;border:2px solid rgba(180,80,255,0.6);display:flex;align-items:center;justify-content:center;background:rgba(140,50,255,0.2);backdrop-filter:blur(4px);transition:all 0.3s;}
+#p4 .play-btn:hover{border-color:#c084fc;background:rgba(140,50,255,0.4);transform:scale(1.1);}
+#p4 .play-btn::after{content:'▶';font-size:22px;color:#c084fc;margin-left:4px;}
+#p4 .vid-tip{position:absolute;bottom:10px;right:14px;font-size:10px;color:rgba(180,80,255,0.5);letter-spacing:1px;}
+#p4 .vid-caption{padding:12px 16px;background:rgba(140,50,255,0.08);border-top:1px solid rgba(180,80,255,0.15);}
+#p4 .vid-caption p{font-size:12px;color:rgba(200,160,255,0.8);line-height:1.7;}
+/* mechanics grid */
+#p4 .mechs{position:relative;z-index:5;width:calc(100% - 40px);margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;animation:slideUp 0.8s ease both;animation-delay:0.5s;}
+#p4 .mech{padding:12px 14px;border-radius:8px;border:1px solid rgba(180,80,255,0.2);background:rgba(140,50,255,0.07);}
+#p4 .mech .m-icon{font-size:18px;}
+#p4 .mech .m-name{font-size:12px;font-weight:700;color:#c084fc;margin-top:4px;letter-spacing:1px;}
+#p4 .mech .m-desc{font-size:10px;color:rgba(180,140,220,0.6);margin-top:3px;line-height:1.5;}
+
+/* ===== PAGE 5: 内容页3 - 天命之人 ===== */
+#p5{background:linear-gradient(180deg,#0a0500 0%,#050010 50%,#0a0500 100%);}
+#p5 .bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(200,150,12,0.08) 0%,transparent 60%);}
+#p5 .pg-title{position:relative;z-index:5;text-align:center;padding-top:55px;animation:slideDown 0.6s ease both;}
+#p5 .pg-title .icon{font-size:22px;filter:drop-shadow(0 0 8px rgba(240,180,40,0.8));}
+#p5 .pg-title .zh{font-size:22px;font-weight:900;color:#f0b429;letter-spacing:5px;text-shadow:0 0 20px rgba(200,150,12,0.6);margin-top:4px;}
+#p5 .pg-title .en{font-size:10px;letter-spacing:5px;color:rgba(200,150,12,0.45);text-transform:uppercase;margin-top:3px;}
+/* character showcase */
+#p5 .char-wrap{position:relative;z-index:5;width:calc(100% - 40px);margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid rgba(200,150,12,0.25);box-shadow:0 0 30px rgba(200,150,12,0.12);animation:fadeIn 0.8s ease both;animation-delay:0.3s;}
+#p5 .char-bg{width:100%;height:200px;background:linear-gradient(135deg,#1a0d00,#0d0020,#1a0d00);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#p5 .char-bg::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(200,150,12,0.15) 0%,transparent 60%);}
+/* wukong figure */
+#p5 .char-fig{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 0 20px rgba(240,180,40,0.7));animation:floatUp 4s ease-in-out infinite;}
+#p5 .cf-head{width:60px;height:64px;border-radius:50% 50% 45% 45%;background:linear-gradient(160deg,#2a1500,#1a0c00);border:1px solid rgba(200,150,12,0.4);position:relative;}
+#p5 .cf-head::after{content:'';position:absolute;top:15px;left:-6px;right:-6px;height:10px;background:linear-gradient(90deg,#b87000,#f5c842,#b87000);border-radius:5px;box-shadow:0 0 15px rgba(240,180,40,0.9);}
+#p5 .cf-body{width:70px;height:100px;background:linear-gradient(180deg,#200f00,#140800);border:1px solid rgba(200,150,12,0.2);border-top:none;border-radius:0 0 18px 18px;position:relative;}
+#p5 .cf-aura{position:absolute;inset:-20px;border-radius:50%;background:radial-gradient(ellipse,rgba(240,180,40,0.2) 0%,transparent 70%);z-index:-1;animation:borderPulse 2s ease-in-out infinite;}
+#p5 .char-info{padding:14px 18px;background:rgba(200,150,12,0.05);}
+#p5 .char-name{font-size:20px;font-weight:900;color:#f0b429;letter-spacing:3px;text-shadow:0 0 15px rgba(200,150,12,0.5);}
+#p5 .char-title{font-size:11px;color:rgba(200,150,12,0.55);letter-spacing:3px;margin-top:3px;}
+#p5 .char-desc{font-size:12px;color:rgba(220,190,120,0.75);line-height:1.8;margin-top:8px;}
+/* audio trigger */
+#p5 .audio-section{position:relative;z-index:5;width:calc(100% - 40px);margin-top:14px;padding:14px 18px;border-radius:10px;border:1px solid rgba(200,150,12,0.2);background:rgba(200,150,12,0.05);cursor:pointer;transition:all 0.3s;animation:slideUp 0.8s ease both;animation-delay:0.5s;}
+#p5 .audio-section:hover{border-color:rgba(240,180,40,0.5);background:rgba(200,150,12,0.1);}
+#p5 .audio-section:active{transform:scale(0.98);}
+#p5 .audio-top{display:flex;align-items:center;gap:12px;}
+#p5 .audio-icon{width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(200,150,12,0.5);background:rgba(200,150,12,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all 0.3s;}
+#p5 .audio-section:hover .audio-icon{border-color:#f0b429;background:rgba(200,150,12,0.2);transform:scale(1.05);}
+#p5 .audio-text .a-label{font-size:11px;color:rgba(200,150,12,0.55);letter-spacing:2px;}
+#p5 .audio-text .a-title{font-size:14px;font-weight:700;color:#f0d060;margin-top:3px;letter-spacing:1px;}
+#p5 .audio-text .a-tip{font-size:10px;color:rgba(200,150,12,0.4);margin-top:2px;}
+/* waveform visualizer */
+#p5 .wave-bars{display:flex;gap:3px;align-items:center;height:24px;margin-top:10px;padding:0 4px;}
+#p5 .wave-bar{flex:1;background:rgba(200,150,12,0.3);border-radius:2px;transition:height 0.1s;}
+#p5 .wave-bar.playing{background:#f0b429;}
+#p5 .audio-quote{margin-top:10px;font-size:12px;color:rgba(220,190,120,0.7);font-style:italic;line-height:1.7;border-top:1px solid rgba(200,150,12,0.15);padding-top:10px;display:none;}
+#p5 .audio-quote.show{display:block;animation:slideUp 0.5s ease both;}
+/* stats */
+#p5 .stats{position:relative;z-index:5;width:calc(100% - 40px);margin-top:12px;display:flex;gap:0;border:1px solid rgba(200,150,12,0.2);border-radius:8px;overflow:hidden;animation:slideUp 0.8s ease both;animation-delay:0.7s;}
+#p5 .stat{flex:1;padding:10px 8px;text-align:center;border-right:1px solid rgba(200,150,12,0.15);}
+#p5 .stat:last-child{border-right:none;}
+#p5 .stat .sv{font-size:18px;font-weight:900;color:#f0b429;}
+#p5 .stat .sk{font-size:10px;color:rgba(200,150,12,0.5);letter-spacing:1px;margin-top:2px;}
+
+/* ===== PAGE 6: 内容页4 - 玩家回音 ===== */
+#p6{background:linear-gradient(180deg,#080500 0%,#0f0a00 50%,#050310 100%);}
+#p6 .bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(180,120,10,0.07) 0%,transparent 60%);}
+#p6 .pg-title{position:relative;z-index:5;text-align:center;padding-top:55px;animation:slideDown 0.6s ease both;}
+#p6 .pg-title .icon{font-size:22px;filter:drop-shadow(0 0 8px rgba(200,170,80,0.8));}
+#p6 .pg-title .zh{font-size:22px;font-weight:900;color:#fbbf24;letter-spacing:5px;text-shadow:0 0 20px rgba(200,150,12,0.6);margin-top:4px;}
+#p6 .pg-title .en{font-size:10px;letter-spacing:5px;color:rgba(200,150,12,0.45);text-transform:uppercase;margin-top:3px;}
+/* scratch canvas */
+#p6 .scratch-wrap{position:relative;z-index:5;width:calc(100% - 40px);height:240px;border-radius:12px;overflow:hidden;margin-top:16px;border:1px solid rgba(200,150,12,0.25);box-shadow:0 0 30px rgba(200,150,12,0.12);animation:fadeIn 0.8s ease both;animation-delay:0.3s;cursor:crosshair;}
+#p6 .scratch-bottom{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0d00,#0d0020,#1a0d00);}
+#p6 .scratch-reveal{text-align:center;padding:20px;}
+#p6 .sr-trophy{font-size:48px;animation:floatUp 3s ease-in-out infinite;}
+#p6 .sr-title{font-size:18px;font-weight:900;color:#f0b429;letter-spacing:3px;margin-top:10px;text-shadow:0 0 20px rgba(200,150,12,0.7);}
+#p6 .sr-sub{font-size:12px;color:rgba(220,190,120,0.7);letter-spacing:2px;margin-top:6px;}
+#p6 .sr-stars{font-size:20px;margin-top:8px;letter-spacing:4px;}
+#p6 .sr-badge{display:inline-block;margin-top:12px;padding:5px 16px;border:1px solid rgba(200,150,12,0.5);border-radius:20px;font-size:11px;color:rgba(200,150,12,0.8);letter-spacing:2px;}
+#p6 .scratch-canvas{position:absolute;inset:0;}
+#p6 .scratch-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;transition:opacity 0.5s;z-index:2;}
+#p6 .scratch-hint .sh-icon{font-size:28px;animation:floatUp 2s ease-in-out infinite;}
+#p6 .scratch-hint .sh-text{font-size:12px;color:rgba(200,150,12,0.7);letter-spacing:2px;margin-top:6px;}
+/* quote section */
+#p6 .final-quote{position:relative;z-index:5;width:calc(100% - 40px);margin-top:16px;padding:16px 20px;border-radius:10px;border:1px solid rgba(200,150,12,0.2);background:rgba(200,150,12,0.04);animation:slideUp 0.8s ease both;animation-delay:0.5s;}
+#p6 .fq-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+#p6 .fq-dot{width:8px;height:8px;border-radius:50%;background:#f0b429;box-shadow:0 0 8px rgba(240,180,40,0.7);}
+#p6 .fq-label{font-size:11px;color:rgba(200,150,12,0.55);letter-spacing:2px;}
+#p6 .fq-text{font-size:13px;color:rgba(220,190,120,0.85);line-height:1.9;letter-spacing:0.5px;}
+#p6 .fq-author{font-size:10px;color:rgba(200,150,12,0.45);text-align:right;margin-top:8px;letter-spacing:2px;}
+/* share row */
+#p6 .share-row{position:relative;z-index:5;display:flex;gap:12px;margin-top:14px;animation:slideUp 0.8s ease both;animation-delay:0.7s;}
+#p6 .share-btn{flex:1;height:40px;border-radius:8px;border:1px solid rgba(200,150,12,0.3);background:rgba(200,150,12,0.06);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.3s;font-size:12px;color:rgba(200,150,12,0.7);letter-spacing:1px;}
+#p6 .share-btn:hover{border-color:#f0b429;color:#f0b429;background:rgba(200,150,12,0.12);}
+#p6 .back-home-btn{position:relative;z-index:5;margin-top:12px;width:140px;height:38px;border-radius:20px;border:1px solid rgba(200,150,12,0.35);background:rgba(0,0,0,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:rgba(200,150,12,0.6);font-size:12px;letter-spacing:2px;transition:all 0.3s;backdrop-filter:blur(4px);animation:slideUp 0.8s ease both;animation-delay:0.9s;}
+#p6 .back-home-btn:hover{border-color:#f0b429;color:#f0b429;}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <audio id="bgm" loop preload="none"></audio>
+  <audio id="char-voice" preload="auto"></audio>
+
+  <button id="bgmBtn" onclick="toggleBgm()" title="背景音乐">
+    <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+  </button>
+
+  <div id="dots">
+    <div class="dot on"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <!-- PAGE 1: 标题页 -->
+  <div class="page active" id="p1">
+    <div class="hero">
+      <div class="beam"></div>
+      <div class="beam beam2"></div>
+      <div class="halo"></div>
+      <div class="halo-inner"></div>
+      <div class="wk">
+        <div class="wk-head"></div>
+        <div class="wk-body"><div class="wk-staff"></div></div>
+        <div class="wk-legs"><div class="wk-leg"></div><div class="wk-leg"></div></div>
+      </div>
+      <div class="scanline"></div>
+      <div class="bottom-grad"></div>
+    </div>
+    <div id="p1-ptc"></div>
+    <div class="content">
+      <div class="tag">Black Myth &middot; Wukong</div>
+      <div class="t1">黑神话</div>
+      <div class="t2">悟&nbsp;&nbsp;空</div>
+      <div class="hdiv gold-line"></div>
+      <div class="desc">踏上取经路，直面天命<br>此行山高水远，我自无畏</div>
+      <button class="sbtn" onclick="goTo(2)"><span>开启旅程</span></button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: 目录页 -->
+  <div class="page" id="p2">
+    <div class="bg-grid"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <div class="corner c-bl"></div><div class="corner c-br"></div>
+    <div class="header">
+      <div class="zh">天命之旅</div>
+      <div class="en">Journey of Destiny</div>
+      <div class="hdiv gold-line" style="width:160px;margin:10px auto 0"></div>
+    </div>
+    <div class="cards">
+      <div class="card card-1" onclick="goTo(3)">
+        <div class="icon">&#127956;</div>
+        <div class="num">Chapter 01</div>
+        <div class="lbl">绝美天地</div>
+        <div class="sub">World &middot; Scenery</div>
+        <div class="arrow">&#8250;</div>
+      </div>
+      <div class="card card-2" onclick="goTo(4)">
+        <div class="icon">&#9889;</div>
+        <div class="num">Chapter 02</div>
+        <div class="lbl">七十二变</div>
+        <div class="sub">Mechanics &middot; Combat</div>
+        <div class="arrow">&#8250;</div>
+      </div>
+      <div class="card card-3" onclick="goTo(5)">
+        <div class="icon">&#128018;</div>
+        <div class="num">Chapter 03</div>
+        <div class="lbl">天命之人</div>
+        <div class="sub">Character &middot; Story</div>
+        <div class="arrow">&#8250;</div>
+      </div>
+      <div class="card card-4" onclick="goTo(6)">
+        <div class="icon">&#127942;</div>
+        <div class="num">Chapter 04</div>
+        <div class="lbl">玩家回音</div>
+        <div class="sub">Player &middot; Echo</div>
+        <div class="arrow">&#8250;</div>
+      </div>
+    </div>
+    <button class="back-to-home" onclick="goTo(1)">&#8962; 返回封面</button>
+  </div>
+
+  <!-- PAGE 3: 绝美天地 -->
+  <div class="page" id="p3">
+    <div class="bg"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <button class="back-btn" onclick="goTo(2)">&#8249;</button>
+    <div class="pg-title">
+      <div class="icon">&#127956;</div>
+      <div class="zh">绝美天地</div>
+      <div class="en">World &amp; Scenery</div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slides" id="slides">
+        <div class="slide">
+          <div class="slide-bg s1-bg">
+            <div class="mountain mt1"></div>
+            <div class="mountain mt2"></div>
+            <div class="mountain mt3"></div>
+            <div class="snow"></div>
+          </div>
+          <div class="s-caption">
+            <div class="stitle">&#10052; 雪山仙境 &middot; Snowpeak</div>
+            <div class="sdesc">千仞玉峰，云雾缭绕，天地间一片苍茫洁白</div>
+          </div>
+        </div>
+        <div class="slide">
+          <div class="slide-bg s2-bg"><div id="lava-wrap"></div></div>
+          <div class="s-caption">
+            <div class="stitle">&#128293; 火焰山 &middot; Flaming Mountains</div>
+            <div class="sdesc">烈焰腾空，岩浆奔流，此地险比十八层地狱</div>
+          </div>
+        </div>
+        <div class="slide">
+          <div class="slide-bg s3-bg"><div id="cloud-wrap"></div></div>
+          <div class="s-caption">
+            <div class="stitle">&#9729; 云海秘境 &middot; Cloud Realm</div>
+            <div class="sdesc">紫气东来，云涌九天，此处便是神仙洞府</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="s-dots">
+      <div class="s-dot on" onclick="slideTo(0)"></div>
+      <div class="s-dot" onclick="slideTo(1)"></div>
+      <div class="s-dot" onclick="slideTo(2)"></div>
+    </div>
+    <div class="quote">
+      <p>&#12300;不历经万水千山，怎知这天地之大、造化之奇&#12301;</p>
+      <cite>&#8212;&#8212;&#12298;黑神话&#65306;悟空&#12299;世界观</cite>
+    </div>
+  </div>
+
+  <!-- PAGE 4: 七十二变 -->
+  <div class="page" id="p4">
+    <div class="bg"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <button class="back-btn" onclick="goTo(2)">&#8249;</button>
+    <div class="pg-title">
+      <div class="icon">&#9889;</div>
+      <div class="zh">七十二变</div>
+      <div class="en">72 Transformations</div>
+    </div>
+    <div class="vid-frame">
+      <div class="vid-ui" id="vidArea" onclick="toggleVideo()">
+        <div class="hex-grid" id="hexGrid"></div>
+        <div class="play-btn" id="playBtn"></div>
+        <div class="vid-tip">点击播放 &#9658;</div>
+      </div>
+      <div class="vid-caption">
+        <p>&#9889; 万物皆可交互，你的想象力是唯一的武器<br>化身天命人，以棍破万法，一怒冲天！</p>
+      </div>
+    </div>
+    <div class="mechs">
+      <div class="mech"><div class="m-icon">&#129354;</div><div class="m-name">如意金箍棒</div><div class="m-desc">重棍轻挑，招招致命</div></div>
+      <div class="mech"><div class="m-icon">&#127744;</div><div class="m-name">定身术</div><div class="m-desc">时间凝固，一击必杀</div></div>
+      <div class="mech"><div class="m-icon">&#128293;</div><div class="m-name">火焰变身</div><div class="m-desc">化身火神，焚天煮海</div></div>
+      <div class="mech"><div class="m-icon">&#128168;</div><div class="m-name">筋斗云</div><div class="m-desc">腾云驾雾，来去自如</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE 5: 天命之人 -->
+  <div class="page" id="p5">
+    <div class="bg"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <button class="back-btn" onclick="goTo(2)">&#8249;</button>
+    <div class="pg-title">
+      <div class="icon">&#128018;</div>
+      <div class="zh">天命之人</div>
+      <div class="en">The Destined One</div>
+    </div>
+    <div class="char-wrap">
+      <div class="char-bg">
+        <div class="char-fig">
+          <div class="cf-head"></div>
+          <div class="cf-body"><div class="cf-aura"></div></div>
+        </div>
+      </div>
+      <div class="char-info">
+        <div class="char-name">天命人</div>
+        <div class="char-title">THE DESTINED ONE &middot; 齐天大圣之后</div>
+        <div class="char-desc">生来便背负天命，手持金箍棒踏遍三界。<br>不是救世主，只是一个不认命的猴子。</div>
+      </div>
+    </div>
+    <div class="audio-section" id="audioSection" onclick="playCharVoice()">
+      <div class="audio-top">
+        <div class="audio-icon" id="audioIcon">&#128266;</div>
+        <div class="audio-text">
+          <div class="a-label">点击角色触发配音</div>
+          <div class="a-title">天命之言</div>
+          <div class="a-tip">Click to hear the Destined One &#8250;</div>
+        </div>
+      </div>
+      <div class="wave-bars" id="waveBars">
+        <div class="wave-bar" style="height:8px"></div><div class="wave-bar" style="height:14px"></div>
+        <div class="wave-bar" style="height:10px"></div><div class="wave-bar" style="height:18px"></div>
+        <div class="wave-bar" style="height:12px"></div><div class="wave-bar" style="height:20px"></div>
+        <div class="wave-bar" style="height:8px"></div><div class="wave-bar" style="height:16px"></div>
+        <div class="wave-bar" style="height:22px"></div><div class="wave-bar" style="height:9px"></div>
+        <div class="wave-bar" style="height:15px"></div><div class="wave-bar" style="height:18px"></div>
+      </div>
+      <div class="audio-quote" id="audioQuote">
+        &#12300;这不仅是一款游戏，更是属于我们这一代人的文化共鸣。踏上取经路，直面天命，此行山高水远，我自无畏。&#12301;
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="sv">36</div><div class="sk">关卡数</div></div>
+      <div class="stat"><div class="sv">83</div><div class="sk">Boss数</div></div>
+      <div class="stat"><div class="sv">&#8734;</div><div class="sk">可能性</div></div>
+    </div>
+  </div>
+
+  <!-- PAGE 6: 玩家回音 -->
+  <div class="page" id="p6">
+    <div class="bg"></div>
+    <div class="corner c-tl"></div><div class="corner c-tr"></div>
+    <button class="back-btn" onclick="goTo(2)">&#8249;</button>
+    <div class="pg-title">
+      <div class="icon">&#127942;</div>
+      <div class="zh">玩家回音</div>
+      <div class="en">Player Echo</div>
+    </div>
+    <div class="scratch-wrap" id="scratchWrap">
+      <div class="scratch-bottom">
+        <div class="scratch-reveal">
+          <div class="sr-trophy">&#127942;</div>
+          <div class="sr-title">通关纪念</div>
+          <div class="sr-sub">GAME CLEARED &middot; 天命已定</div>
+          <div class="sr-stars">&#11088;&#11088;&#11088;&#11088;&#11088;</div>
+          <div class="sr-badge">齐天大圣 &middot; 归位</div>
+        </div>
+      </div>
+      <div class="scratch-hint" id="scratchHint">
+        <div class="sh-icon">&#128070;</div>
+        <div class="sh-text">滑动擦除，解锁彩蛋</div>
+      </div>
+      <canvas class="scratch-canvas" id="scratchCanvas"></canvas>
+    </div>
+    <div class="final-quote">
+      <div class="fq-top"><div class="fq-dot"></div><div class="fq-label">玩家感言</div></div>
+      <div class="fq-text">真正的游戏，是让你在虚拟世界中找到了真实的感动。每一次挥棍，都是对命运的反抗；每一次通关，都是对自我的超越。</div>
+      <div class="fq-author">&#8212; 天命人，2024</div>
+    </div>
+    <div class="share-row">
+      <div class="share-btn" onclick="goTo(1)">&#8962; 回到封面</div>
+      <div class="share-btn" onclick="goTo(2)">&#9776; 查看目录</div>
+    </div>
+  </div>
+
+</div>
+<script>
+// ===== 页面跳转 =====
+let curPage = 1;
+const totalPages = 6;
+
+function goTo(n) {
+  const prev = document.getElementById('p' + curPage);
+  const next = document.getElementById('p' + n);
+  if (!next || n === curPage) return;
+  prev.classList.remove('active');
+  next.classList.add('active');
+  // 入场动画
+  next.style.animation = 'none';
+  next.offsetHeight;
+  next.style.animation = 'fadeIn 0.5s ease both';
+  curPage = n;
+  updateDots();
+  // 页面初始化
+  if (n === 3) initSlider();
+  if (n === 4) initHexGrid();
+  if (n === 6) initScratch();
+}
+
+function updateDots() {
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('on', i + 1 === curPage);
+  });
+}
+
+// ===== BGM =====
+let bgmPlaying = false;
+const bgmBtn = document.getElementById('bgmBtn');
+
+function toggleBgm() {
+  const bgm = document.getElementById('bgm');
+  if (bgmPlaying) {
+    bgm.pause();
+    bgmBtn.classList.add('muted');
+  } else {
+    bgm.play().catch(() => {});
+    bgmBtn.classList.remove('muted');
+  }
+  bgmPlaying = !bgmPlaying;
+}
+
+// ===== 粒子 =====
+function spawnParticles(containerId, count) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'ptc';
+    const size = Math.random() * 3 + 1;
+    p.style.cssText = [
+      'width:' + size + 'px',
+      'height:' + size + 'px',
+      'left:' + Math.random() * 100 + '%',
+      'animation-duration:' + (Math.random() * 8 + 5) + 's',
+      'animation-delay:-' + Math.random() * 8 + 's',
+      'opacity:' + (Math.random() * 0.6 + 0.2)
+    ].join(';');
+    el.appendChild(p);
+  }
+}
+spawnParticles('p1-ptc', 18);
+
+// ===== 幻灯片 =====
+let slideIdx = 0;
+let slideTimer = null;
+const slideCount = 3;
+
+function slideTo(idx) {
+  slideIdx = idx;
+  const slides = document.getElementById('slides');
+  if (!slides) return;
+  slides.style.transform = 'translateX(-' + (idx * 100) + '%)';
+  document.querySelectorAll('.s-dot').forEach((d, i) => {
+    d.classList.toggle('on', i === idx);
+  });
+}
+
+function initSlider() {
+  slideIdx = 0;
+  slideTo(0);
+  clearInterval(slideTimer);
+  slideTimer = setInterval(() => {
+    slideTo((slideIdx + 1) % slideCount);
+  }, 3000);
+  // 触摸滑动
+  const wrap = document.querySelector('.slider-wrap');
+  if (!wrap) return;
+  let startX = 0;
+  wrap.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  wrap.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) {
+      slideTo(dx < 0 ? Math.min(slideIdx + 1, slideCount - 1) : Math.max(slideIdx - 1, 0));
+      clearInterval(slideTimer);
+      slideTimer = setInterval(() => slideTo((slideIdx + 1) % slideCount), 3000);
+    }
+  }, { passive: true });
+  // 鼠标拖动
+  wrap.addEventListener('mousedown', e => { startX = e.clientX; });
+  wrap.addEventListener('mouseup', e => {
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 40) {
+      slideTo(dx < 0 ? Math.min(slideIdx + 1, slideCount - 1) : Math.max(slideIdx - 1, 0));
+    }
+  });
+}
+
+// ===== 视频区域 hex网格 =====
+function initHexGrid() {
+  const grid = document.getElementById('hexGrid');
+  if (!grid || grid.childElementCount > 0) return;
+  const positions = [
+    [10,10],[55,10],[100,10],[145,10],[190,10],[235,10],[280,10],
+    [32,40],[78,40],[124,40],[170,40],[216,40],[262,40],
+    [10,70],[55,70],[100,70],[145,70],[190,70],[235,70],[280,70],
+    [32,100],[78,100],[124,100],[170,100],[216,100],[262,100],
+    [10,130],[55,130],[100,130],[145,130],[190,130],[235,130]
+  ];
+  positions.forEach(([x, y]) => {
+    const h = document.createElement('div');
+    h.className = 'hex';
+    h.style.left = x + 'px';
+    h.style.top = y + 'px';
+    grid.appendChild(h);
+  });
+}
+
+// ===== 视频播放模拟 =====
+let videoPlaying = false;
+function toggleVideo() {
+  const btn = document.getElementById('playBtn');
+  const tip = document.querySelector('.vid-tip');
+  videoPlaying = !videoPlaying;
+  if (videoPlaying) {
+    btn.style.background = 'rgba(180,80,255,0.5)';
+    btn.style.borderColor = '#c084fc';
+    btn.innerHTML = '<span style="font-size:20px;color:#c084fc">&#9646;&#9646;</span>';
+    if (tip) tip.textContent = '播放中...';
+    // 模拟脉冲效果
+    const vid = document.getElementById('vidArea');
+    if (vid) vid.style.boxShadow = '0 0 40px rgba(180,80,255,0.4)';
+  } else {
+    btn.style.background = 'rgba(140,50,255,0.2)';
+    btn.style.borderColor = 'rgba(180,80,255,0.6)';
+    btn.innerHTML = '';
+    btn.style.setProperty('--after-content', '"\u25b6"');
+    btn.setAttribute('data-icon', '▶');
+    if (tip) tip.textContent = '点击播放 ▶';
+    const vid = document.getElementById('vidArea');
+    if (vid) vid.style.boxShadow = 'none';
+  }
+}
+
+// ===== 角色配音 =====
+let voicePlaying = false;
+let waveTimer = null;
+const quoteEl = document.getElementById('audioQuote');
+
+function playCharVoice() {
+  const voice = document.getElementById('char-voice');
+  const icon = document.getElementById('audioIcon');
+  const bars = document.querySelectorAll('.wave-bar');
+  voicePlaying = !voicePlaying;
+  if (voicePlaying) {
+    voice.play().catch(() => {});
+    if (icon) icon.textContent = '\uD83D\uDD07';
+    if (quoteEl) quoteEl.classList.add('show');
+    // 音波动画
+    waveTimer = setInterval(() => {
+      bars.forEach(b => {
+        const h = Math.random() * 20 + 4;
+        b.style.height = h + 'px';
+        b.classList.add('playing');
+      });
+    }, 120);
+  } else {
+    voice.pause();
+    voice.currentTime = 0;
+    if (icon) icon.textContent = '\uD83D\uDD0A';
+    clearInterval(waveTimer);
+    bars.forEach((b, i) => {
+      b.style.height = [8,14,10,18,12,20,8,16,22,9,15,18][i % 12] + 'px';
+      b.classList.remove('playing');
+    });
+  }
+}
+
+// ===== 擦玻璃 =====
+let scratchInited = false;
+function initScratch() {
+  if (scratchInited) return;
+  scratchInited = true;
+  const canvas = document.getElementById('scratchCanvas');
+  const wrap = document.getElementById('scratchWrap');
+  const hint = document.getElementById('scratchHint');
+  if (!canvas || !wrap) return;
+  const W = wrap.offsetWidth;
+  const H = wrap.offsetHeight;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  // 绘制遮罩：羊皮纸质感渐变
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, '#2a1800');
+  grad.addColorStop(0.3, '#1a0e00');
+  grad.addColorStop(0.6, '#0d0800');
+  grad.addColorStop(1, '#1a0e00');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+  // 纹理噪点
+  for (let i = 0; i < 3000; i++) {
+    ctx.fillStyle = 'rgba(' + (Math.random() > 0.5 ? '200,150,12' : '100,60,0') + ',' + (Math.random() * 0.15) + ')';
+    ctx.fillRect(Math.random() * W, Math.random() * H, Math.random() * 3 + 1, Math.random() * 3 + 1);
+  }
+  // 文字提示
+  ctx.fillStyle = 'rgba(200,150,12,0.4)';
+  ctx.font = 'bold 14px PingFang SC, Microsoft YaHei, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('迷雾笼罩，命运未知...', W / 2, H / 2 - 10);
+  ctx.font = '12px PingFang SC, Microsoft YaHei, sans-serif';
+  ctx.fillStyle = 'rgba(200,150,12,0.3)';
+  ctx.fillText('用手指擦除迷雾，揭开彩蛋', W / 2, H / 2 + 15);
+  // 擦除逻辑
+  ctx.globalCompositeOperation = 'destination-out';
+  let scraping = false;
+  let totalPixels = W * H;
+  let clearedRatio = 0;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return [src.clientX - rect.left, src.clientY - rect.top];
+  }
+
+  function scratch(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.fill();
+    // 每50次检查完成度
+    if (Math.random() < 0.02) checkClear();
+  }
+
+  function checkClear() {
+    ctx.globalCompositeOperation = 'source-over';
+    const data = ctx.getImageData(0, 0, W, H).data;
+    let transparent = 0;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 128) transparent++;
+    }
+    clearedRatio = transparent / (W * H);
+    ctx.globalCompositeOperation = 'destination-out';
+    if (clearedRatio > 0.55) {
+      canvas.style.transition = 'opacity 0.8s';
+      canvas.style.opacity = '0';
+      if (hint) hint.style.opacity = '0';
+      setTimeout(() => { canvas.style.display = 'none'; }, 800);
+    }
+  }
+
+  canvas.addEventListener('mousedown', e => { scraping = true; const [x,y] = getPos(e); scratch(x,y); });
+  canvas.addEventListener('mousemove', e => { if (!scraping) return; const [x,y] = getPos(e); scratch(x,y); });
+  canvas.addEventListener('mouseup', () => { scraping = false; });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); scraping = true; const [x,y] = getPos(e); scratch(x,y); if (hint) hint.style.opacity = '0'; }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!scraping) return; const [x,y] = getPos(e); scratch(x,y); }, { passive: false });
+  canvas.addEventListener('touchend', () => { scraping = false; });
+  if (hint) {
+    canvas.addEventListener('mousedown', () => { hint.style.opacity = '0'; }, { once: true });
+  }
+}
+
+// ===== 页面加载 =====
+document.addEventListener('DOMContentLoaded', () => {
+  spawnParticles('p1-ptc', 18);
+  updateDots();
+});
+
+// 点击涟漪效果
+document.getElementById('stage').addEventListener('click', function(e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'CANVAS') return;
+  const ripple = document.createElement('div');
+  ripple.style.cssText = [
+    'position:absolute',
+    'width:60px', 'height:60px',
+    'border-radius:50%',
+    'border:1px solid rgba(200,150,12,0.4)',
+    'pointer-events:none',
+    'z-index:9998',
+    'animation:rippleOut 0.6s ease both',
+    'left:' + (e.clientX - this.getBoundingClientRect().left - 30) + 'px',
+    'top:' + (e.clientY - this.getBoundingClientRect().top - 30) + 'px'
+  ].join(';');
+  this.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
+});
+</script>
+</body>
+</html>
